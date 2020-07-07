@@ -137,7 +137,7 @@ class showClientData():
         self.addCredit = ttk.Button(actionBtnFrm, text="Give Credit", command=lambda x='Credit', curID = clientData[0] : addTransaction(self,x, curID)).grid(column=0,row=0,padx=4, pady=4)
         self.addPayment = ttk.Button(actionBtnFrm, text="Accept Payment", command=lambda x='Payment', curID = clientData[0]: addTransaction(self,x, curID)).grid(column=1,row=0,padx=4, pady=4)
         self.getStatement = ttk.Button(actionBtnFrm, text="Refresh List", command = lambda : self._showJournal(clientData[0])).grid(column=3,row=0,padx=4, pady=4)
-        self.getStatement = ttk.Button(actionBtnFrm, text="Delete item", command = lambda: Database.deleteTransaction(self, txnData[-1])).grid(column=4,row=0,padx=4, pady=4)
+        self.getStatement = ttk.Button(actionBtnFrm, text="Delete item", command = lambda: Database.deleteTransaction(self, txnData[0])).grid(column=4,row=0,padx=4, pady=4)
         self.getStatement = ttk.Button(actionBtnFrm, text="Get Statement").grid(column=5,row=0,padx=4, pady=4)
 
         #-------------- Journal Data View Frame ---------------------------
@@ -152,13 +152,13 @@ class showClientData():
         self.TxnDataview.configure(yscrollcommand=self.scrlBar1.set)
         self.scrlBar1.pack(side='right', fill='y')
 
-        self.TxnDataview.column(1, width=75, minwidth=20, stretch=tk.NO);   self.TxnDataview.heading(1, text='Date')
-        self.TxnDataview.column(2, width=75, minwidth=50, anchor=tk.W);    self.TxnDataview.heading(2, text='Time')
-        self.TxnDataview.column(3, width=200, minwidth=50, anchor=tk.W);     self.TxnDataview.heading(3, text='Description')
-        self.TxnDataview.column(4, width=100, minwidth=50, anchor=tk.W);    self.TxnDataview.heading(4, text='Credit')
-        self.TxnDataview.column(5, width=100, minwidth=50, anchor=tk.W);    self.TxnDataview.heading(5, text='Payment')
-        self.TxnDataview.column(6, width=100, minwidth=50, anchor=tk.W);    self.TxnDataview.heading(6, text='Rem. Balance')
-        self.TxnDataview.column(7, width=0, minwidth=0, anchor=tk.W);    self.TxnDataview.heading(6, text='Txn_ID')
+        self.TxnDataview.column(1, width=1, minwidth=1, anchor=tk.W);    self.TxnDataview.heading(1, text='Txn_ID')
+        self.TxnDataview.column(2, width=75, minwidth=20, stretch=tk.NO);   self.TxnDataview.heading(2, text='Date')
+        self.TxnDataview.column(3, width=75, minwidth=50, anchor=tk.W);    self.TxnDataview.heading(3, text='Time')
+        self.TxnDataview.column(4, width=200, minwidth=50, anchor=tk.W);     self.TxnDataview.heading(4, text='Description')
+        self.TxnDataview.column(5, width=100, minwidth=50, anchor=tk.W);    self.TxnDataview.heading(5, text='Credit')
+        self.TxnDataview.column(6, width=100, minwidth=50, anchor=tk.W);    self.TxnDataview.heading(6, text='Payment')
+        self.TxnDataview.column(7, width=100, minwidth=50, anchor=tk.W);    self.TxnDataview.heading(7, text='Rem. Balance')
         self.TxnDataview.bind('<ButtonRelease-1>', self._select_data_row)
         self._showJournal(clientData[0])
 
@@ -168,7 +168,7 @@ class showClientData():
             self.TxnDataview.delete(row)
         listAll = Database.getTransaction(self, id)
         for row in listAll:
-            self.TxnDataview.insert("", 'end', values=(row[2], row[3], row[1], row[4], row[5], row[6], row[0]))
+            self.TxnDataview.insert("", 'end', values=(row[0], row[2], row[3], row[1], row[4], row[5], row[6]))
 
 
 class addTransaction():
@@ -199,6 +199,8 @@ class addTransaction():
         '''
         The form for journal access for a new transaction entry
         '''
+        print("transaction type ", txnType)
+        print("Client ID ", clientID)
 
         # Whole form label frame---------------------------------------
         if txnType == 'Credit':
@@ -237,7 +239,7 @@ class addTransaction():
         self.e3 = tk.Entry(self.infoFrame, width=15)
         self.e3.grid(column=1, row=4, padx=5, pady=4, sticky='W')
         # --------------------------------------------------------------
-        self.btn1 = ttk.Button(self.infoFrame, text=f'Add {txnType}', command=lambda t=txnType, id = clientID: self.on_commit(t, id)).grid(column=0, row=9, padx=8,
+        self.btn1 = ttk.Button(self.infoFrame, text=f'Add {txnType}', command=lambda t=txnType, id=clientID: self.on_commit(t, id)).grid(column=0, row=9, padx=8,
                                                                                           pady=4, sticky='W')
         self.btn2 = ttk.Button(self.infoFrame, text="Cancel", command=lambda: insertClientForm.on_cancel(self)).grid(column=1, row=9, padx=8,
                                                                                            pady=4, sticky='W')
@@ -255,10 +257,15 @@ class addTransaction():
                 self.paymentAmt = int(self.e3.get())
 
             listAll = Database.getTransaction(self, id)
-            self.prevBalance = listAll[-1][-2]
+            print(listAll)
+            if not listAll == True:
+                self.prevBalance = 0
+            else:
+                self.prevBalance = listAll[-1][-2]
             self.curBalance = self.prevBalance + self.paymentAmt - self.creditAmt
 
             ldg_data = (self.description, self.date, self.time, self.creditAmt, self.paymentAmt, self.curBalance, id )
+            print(ldg_data)
             Database.addTransaction(self, ldg_data)
             self.frm.destroy()
 
